@@ -47,3 +47,58 @@ export interface Schedule {
   startTime: string;
   matches: Match[];
 }
+
+export interface Club {
+  id: string;
+  name: string;
+  logo?: string;
+  location: string;
+  about: string;
+  playerCount: number;
+  courts: ClubCourt[];
+  contactInfo: string;
+  socialLinks?: {
+    website?: string;
+    facebook?: string;
+    instagram?: string;
+  };
+  createdBy: string;
+  members: string[];
+}
+
+export interface ClubCourt {
+  id: string;
+  name: string;
+  type: "indoor" | "outdoor";
+  clubId: string;
+}
+
+export interface CourtBooking {
+  id: string;
+  courtId: string;
+  courtName: string;
+  clubId: string;
+  clubName: string;
+  userId: string;
+  userName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: "confirmed" | "cancelled";
+}
+
+export interface User {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  clubId?: string;
+  clubName?: string;
+  role: "user" | "admin";
+}
+
+export interface Admin {
+  id: string;
+  email: string;
+  name: string;
+}

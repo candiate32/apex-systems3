@@ -1,7 +1,9 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, Calendar, Trophy, Shield, BarChart3 } from "lucide-react";
+import { Home, Users, Calendar, Trophy, BarChart3, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,7 +12,7 @@ interface LayoutProps {
 const navItems = [
   { path: "/", icon: Home, label: "Home" },
   { path: "/register", icon: Users, label: "Register" },
-  { path: "/admin", icon: Shield, label: "Admin" },
+  { path: "/community", icon: Building2, label: "Community" },
   { path: "/courts", icon: Calendar, label: "Live Courts" },
   { path: "/umpire", icon: Trophy, label: "Umpire" },
   { path: "/leaderboard", icon: BarChart3, label: "Leaderboard" },
@@ -18,6 +20,7 @@ const navItems = [
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,6 +55,27 @@ export default function Layout({ children }: LayoutProps) {
                   </Link>
                 );
               })}
+
+              {isAuthenticated ? (
+                <Button
+                  onClick={logout}
+                  variant="outline"
+                  size="sm"
+                  className="ml-4 smooth-transition hover:scale-105"
+                >
+                  Logout
+                </Button>
+              ) : (
+                <Link to="/login">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="ml-4 smooth-transition hover:scale-105"
+                  >
+                    Login
+                  </Button>
+                </Link>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
