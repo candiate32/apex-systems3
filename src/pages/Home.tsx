@@ -11,13 +11,6 @@ const features = [
     color: "text-neon-cyan",
   },
   {
-    icon: Building2,
-    title: "Community & Clubs",
-    description: "Explore clubs, book courts & connect with players",
-    path: "/community",
-    color: "text-neon-purple",
-  },
-  {
     icon: Calendar,
     title: "Live Courts",
     description: "Real-time court updates & match progression",
@@ -37,6 +30,13 @@ const features = [
     description: "Track rankings, results & tournament standings",
     path: "/leaderboard",
     color: "text-accent",
+  },
+  {
+    icon: Building2,
+    title: "Community & Clubs",
+    description: "Explore clubs, book courts & connect with players",
+    path: "/community",
+    color: "text-neon-purple",
   },
 ];
 
