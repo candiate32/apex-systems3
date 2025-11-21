@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Users, Shield, Calendar, Trophy, BarChart3, Zap } from "lucide-react";
+import { Users, Building2, Calendar, Trophy, BarChart3, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const features = [
@@ -11,10 +11,10 @@ const features = [
     color: "text-neon-cyan",
   },
   {
-    icon: Shield,
-    title: "Admin Control",
-    description: "Manage fixtures, schedules & tournament brackets",
-    path: "/admin",
+    icon: Building2,
+    title: "Community & Clubs",
+    description: "Explore clubs, book courts & connect with players",
+    path: "/community",
     color: "text-neon-purple",
   },
   {
@@ -70,10 +70,10 @@ export default function Home() {
               Register as Player
             </Button>
           </Link>
-          <Link to="/admin">
+          <Link to="/community">
             <Button size="lg" variant="secondary" className="smooth-transition hover:scale-105">
-              <Shield className="w-5 h-5 mr-2" />
-              Admin Dashboard
+              <Building2 className="w-5 h-5 mr-2" />
+              Explore Community
             </Button>
           </Link>
         </div>

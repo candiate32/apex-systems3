@@ -1,4 +1,4 @@
-import { Player, Match, Court } from "./types";
+import { Player, Match, Court, Club, ClubCourt, CourtBooking } from "./types";
 
 export const mockPlayers: Player[] = [
   {
@@ -109,5 +109,92 @@ export const mockCourts: Court[] = [
     id: 3,
     currentMatch: undefined,
     nextMatch: mockMatches[2],
+  },
+];
+
+export const mockClubs: Club[] = [
+  {
+    id: "club1",
+    name: "Delhi Sports Club",
+    logo: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=200",
+    location: "New Delhi, India",
+    about: "Premier sports club with world-class facilities and professional coaching staff.",
+    playerCount: 45,
+    courts: [
+      { id: "c1", name: "Court 1", type: "indoor", clubId: "club1" },
+      { id: "c2", name: "Court 2", type: "outdoor", clubId: "club1" },
+      { id: "c3", name: "Court 3", type: "indoor", clubId: "club1" },
+    ],
+    contactInfo: "+91 98765 43210",
+    socialLinks: {
+      website: "https://delhisportsclub.com",
+      instagram: "@delhisportsclub",
+    },
+    createdBy: "user1",
+    members: ["1", "2", "3"],
+  },
+  {
+    id: "club2",
+    name: "Mumbai Racquet Club",
+    logo: "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=200",
+    location: "Mumbai, India",
+    about: "Elite club focusing on competitive tournaments and player development.",
+    playerCount: 32,
+    courts: [
+      { id: "c4", name: "Court A", type: "indoor", clubId: "club2" },
+      { id: "c5", name: "Court B", type: "outdoor", clubId: "club2" },
+    ],
+    contactInfo: "+91 98765 43211",
+    createdBy: "user2",
+    members: ["2", "4"],
+  },
+  {
+    id: "club3",
+    name: "Bangalore Sports Academy",
+    logo: "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=200",
+    location: "Bangalore, India",
+    about: "Modern academy with state-of-the-art training facilities and expert coaches.",
+    playerCount: 28,
+    courts: [
+      { id: "c6", name: "Arena 1", type: "indoor", clubId: "club3" },
+      { id: "c7", name: "Arena 2", type: "indoor", clubId: "club3" },
+      { id: "c8", name: "Outdoor Court", type: "outdoor", clubId: "club3" },
+    ],
+    contactInfo: "+91 98765 43212",
+    socialLinks: {
+      website: "https://bangaloresportsacademy.com",
+      facebook: "BangaloreSportsAcademy",
+    },
+    createdBy: "user3",
+    members: ["3"],
+  },
+];
+
+export const mockBookings: CourtBooking[] = [
+  {
+    id: "b1",
+    courtId: "c1",
+    courtName: "Court 1",
+    clubId: "club1",
+    clubName: "Delhi Sports Club",
+    userId: "user1",
+    userName: "Rahul Sharma",
+    date: "2024-12-25",
+    startTime: "10:00",
+    endTime: "11:00",
+    status: "confirmed",
+  },
+  {
+    id: "b2",
+    courtId: "c4",
+    courtName: "Court A",
+    clubId: "club2",
+    clubName: "Mumbai Racquet Club",
+    userId: "user2",
+    userName: "Priya Patel",
+    date: "2024-12-25",
+    startTime: "14:00",
+    endTime: "15:30",
+    status: "confirmed",
   },
 ];
