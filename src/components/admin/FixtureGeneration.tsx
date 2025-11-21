@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Loader2, Trophy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { bracketApi, TournamentBracket } from "@/services/bracketApi";
+import { bracketApi, TournamentBracket } from "@/api/bracketApi";
 import KnockoutBracket from "./KnockoutBracket";
 import { Input } from "@/components/ui/input";
 

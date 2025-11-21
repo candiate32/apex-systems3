@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Trophy, Award, Loader2 } from "lucide-react";
-import { BracketMatch, TournamentBracket } from "@/services/bracketApi";
+import { BracketMatch, TournamentBracket } from "@/api/bracketApi";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
