@@ -1,59 +1,81 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useScheduleGenerator } from "@/hooks/useScheduleGenerator";
+import { ScheduleResultView } from "./schedule/ScheduleResultView";
+import { Skeleton } from "@/components/ui/skeleton";
+import { playerApi } from "@/api";
+import { courtApi } from "@/api";
 
 export default function SchedulingPanel() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showSchedule, setShowSchedule] = useState(false);
+  const { generateSchedule, saveSchedule, isGenerating, isSaving, scheduleData } = useScheduleGenerator();
+  const [players, setPlayers] = useState<Array<{ id: string; name: string }>>([]);
+  const [courts, setCourts] = useState<Array<{ id: string; name: string }>>([]);
   const [formData, setFormData] = useState({
-    courtCount: 4,
     matchDuration: 25,
     restTime: 5,
     startTime: "09:00",
+    selectedPlayers: [] as string[],
+    selectedCourts: [] as string[],
   });
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsGenerating(false);
-    setShowSchedule(true);
-    toast.success("Schedule Generated!", {
-      description: "Match timetable has been created successfully",
+  // Fetch players and courts on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [playersData, courtsData] = await Promise.all([
+          playerApi.getPlayers(),
+          courtApi.getCourts(),
+        ]);
+        setPlayers(playersData);
+        setCourts(courtsData);
+        
+        // Auto-select first 8 players and 4 courts
+        setFormData(prev => ({
+          ...prev,
+          selectedPlayers: playersData.slice(0, 8).map((p: any) => p.id),
+          selectedCourts: courtsData.slice(0, 4).map((c: any) => c.id),
+        }));
+      } catch (error) {
+        toast.error("Failed to load data", {
+          description: "Could not fetch players or courts",
+        });
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleGenerate = () => {
+    if (formData.selectedPlayers.length === 0) {
+      toast.error("No Players Selected", {
+        description: "Please select at least 2 players",
+      });
+      return;
+    }
+
+    if (formData.selectedCourts.length === 0) {
+      toast.error("No Courts Selected", {
+        description: "Please select at least 1 court",
+      });
+      return;
+    }
+
+    generateSchedule({
+      player_ids: formData.selectedPlayers,
+      court_ids: formData.selectedCourts,
+      match_duration: formData.matchDuration,
+      rest_time: formData.restTime,
+      start_time: formData.startTime,
     });
   };
 
-  // Generate sample schedule
-  const generateTimeSlots = () => {
-    const slots = [];
-    let currentTime = formData.startTime;
-    
-    for (let i = 0; i < 12; i++) {
-      const [hours, minutes] = currentTime.split(":").map(Number);
-      const endMinutes = minutes + formData.matchDuration;
-      const endHours = hours + Math.floor(endMinutes / 60);
-      const finalMinutes = endMinutes % 60;
-      
-      const endTime = `${String(endHours).padStart(2, "0")}:${String(finalMinutes).padStart(2, "0")}`;
-      
-      slots.push({
-        id: i + 1,
-        startTime: currentTime,
-        endTime,
-        court: (i % formData.courtCount) + 1,
-        match: `Match ${i + 1}`,
-        players: `Player ${i * 2 + 1} vs Player ${i * 2 + 2}`,
-      });
-      
-      // Add rest time
-      const nextMinutes = finalMinutes + formData.restTime;
-      const nextHours = endHours + Math.floor(nextMinutes / 60);
-      currentTime = `${String(nextHours).padStart(2, "0")}:${String(nextMinutes % 60).padStart(2, "0")}`;
+  const handleSave = () => {
+    if (scheduleData) {
+      saveSchedule(scheduleData);
     }
-    
-    return slots;
   };
 
   return (
@@ -61,18 +83,6 @@ export default function SchedulingPanel() {
       {/* Scheduling Form */}
       <div className="glass-card p-6 rounded-xl space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="courtCount">Number of Courts</Label>
-            <Input
-              id="courtCount"
-              type="number"
-              min="1"
-              max="12"
-              value={formData.courtCount}
-              onChange={(e) => setFormData({ ...formData, courtCount: parseInt(e.target.value) })}
-            />
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="matchDuration">Match Duration (minutes)</Label>
             <Input
@@ -106,12 +116,26 @@ export default function SchedulingPanel() {
               onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label>Selected Players</Label>
+            <div className="text-sm text-muted-foreground">
+              {formData.selectedPlayers.length} of {players.length} players selected
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Selected Courts</Label>
+            <div className="text-sm text-muted-foreground">
+              {formData.selectedCourts.length} of {courts.length} courts selected
+            </div>
+          </div>
         </div>
 
         <Button
           size="lg"
           onClick={handleGenerate}
-          disabled={isGenerating}
+          disabled={isGenerating || players.length === 0 || courts.length === 0}
           className="w-full neon-border smooth-transition hover:scale-105"
         >
           {isGenerating ? (
@@ -128,43 +152,32 @@ export default function SchedulingPanel() {
         </Button>
       </div>
 
-      {/* Generated Schedule */}
-      {showSchedule && (
-        <div className="glass-card p-6 rounded-xl animate-fade-in">
-          <h3 className="text-xl font-semibold mb-6 flex items-center">
-            <Clock className="w-5 h-5 mr-2 text-primary" />
-            Match Timetable
-          </h3>
+      {/* Loading State */}
+      {isGenerating && (
+        <div className="space-y-4">
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
+      )}
 
-          <div className="space-y-3">
-            {generateTimeSlots().map((slot, index) => (
-              <div
-                key={slot.id}
-                className="bg-secondary/30 p-4 rounded-lg border border-border/50 smooth-transition hover:border-primary/50 animate-slide-up"
-                style={{ animationDelay: `${index * 30}ms` }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <span className="text-lg font-bold text-primary">C{slot.court}</span>
-                    </div>
-                    <div>
-                      <div className="font-semibold">{slot.match}</div>
-                      <div className="text-sm text-muted-foreground">{slot.players}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      {slot.startTime} - {slot.endTime}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formData.matchDuration} mins
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Generated Schedule */}
+      {scheduleData && !isGenerating && (
+        <ScheduleResultView
+          schedule={scheduleData}
+          onSave={handleSave}
+          isSaving={isSaving}
+        />
+      )}
+
+      {/* Empty State */}
+      {!scheduleData && !isGenerating && (
+        <div className="glass-card p-12 rounded-xl text-center">
+          <Clock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold mb-2">No Schedule Generated Yet</h3>
+          <p className="text-muted-foreground">
+            Configure the settings above and click "Generate Schedule" to create a match timetable
+          </p>
         </div>
       )}
     </div>

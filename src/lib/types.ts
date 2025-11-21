@@ -48,6 +48,55 @@ export interface Schedule {
   matches: Match[];
 }
 
+// Scheduling System Types
+export interface ScheduledPlayer {
+  id: string;
+  name: string;
+  club: string;
+  seed?: number;
+}
+
+export interface ScheduledMatchData {
+  player1: ScheduledPlayer;
+  player2: ScheduledPlayer;
+  penalty: number;
+}
+
+export interface ScheduledCourt {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface ScheduledMatch {
+  id: string;
+  match: ScheduledMatchData;
+  court: ScheduledCourt;
+  scheduled_start_time: string; // ISO datetime string
+  scheduled_end_time: string; // ISO datetime string
+  status: "scheduled" | "pending" | "ongoing" | "completed";
+}
+
+export interface CourtUtilization {
+  [courtId: string]: number; // percentage as float
+}
+
+export interface SchedulingResponse {
+  scheduled_matches: ScheduledMatch[];
+  total_schedule_time: number; // in minutes
+  court_utilization: CourtUtilization;
+  player_rest_violations: string[];
+  scheduling_conflicts: string[];
+}
+
+export interface GenerateSchedulePayload {
+  player_ids: string[];
+  court_ids: string[];
+  match_duration: number;
+  rest_time: number;
+  start_time: string;
+}
+
 export interface Club {
   id: string;
   name: string;
