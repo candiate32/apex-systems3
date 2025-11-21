@@ -251,6 +251,80 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_matches: {
+        Row: {
+          court_data: Json
+          created_at: string | null
+          id: string
+          match_data: Json
+          schedule_id: string
+          scheduled_end_time: string
+          scheduled_start_time: string
+          status: string
+        }
+        Insert: {
+          court_data: Json
+          created_at?: string | null
+          id?: string
+          match_data: Json
+          schedule_id: string
+          scheduled_end_time: string
+          scheduled_start_time: string
+          status?: string
+        }
+        Update: {
+          court_data?: Json
+          created_at?: string | null
+          id?: string
+          match_data?: Json
+          schedule_id?: string
+          scheduled_end_time?: string
+          scheduled_start_time?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_matches_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedules: {
+        Row: {
+          court_utilization: Json
+          created_at: string | null
+          created_by: string | null
+          id: string
+          player_rest_violations: string[] | null
+          scheduling_conflicts: string[] | null
+          total_schedule_time: number
+          updated_at: string | null
+        }
+        Insert: {
+          court_utilization?: Json
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          player_rest_violations?: string[] | null
+          scheduling_conflicts?: string[] | null
+          total_schedule_time: number
+          updated_at?: string | null
+        }
+        Update: {
+          court_utilization?: Json
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          player_rest_violations?: string[] | null
+          scheduling_conflicts?: string[] | null
+          total_schedule_time?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

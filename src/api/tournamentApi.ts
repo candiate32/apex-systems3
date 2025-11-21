@@ -7,11 +7,11 @@ export interface GenerateFixturesPayload {
 }
 
 export interface GenerateSchedulePayload {
-  court_count: number;
+  player_ids: string[];
+  court_ids: string[];
   match_duration: number;
   rest_time: number;
   start_time: string;
-  match_ids: string[];
 }
 
 export interface Match {
@@ -34,14 +34,40 @@ export interface Match {
   created_at: string;
 }
 
-export interface Schedule {
+export interface ScheduledPlayer {
   id: string;
-  court_count: number;
-  match_duration: number;
-  rest_time: number;
-  start_time: string;
-  matches: Match[];
-  created_at: string;
+  name: string;
+  club: string;
+  seed?: number;
+}
+
+export interface ScheduledMatchData {
+  player1: ScheduledPlayer;
+  player2: ScheduledPlayer;
+  penalty: number;
+}
+
+export interface ScheduledCourt {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface ScheduledMatch {
+  id: string;
+  match: ScheduledMatchData;
+  court: ScheduledCourt;
+  scheduled_start_time: string;
+  scheduled_end_time: string;
+  status: "scheduled" | "pending" | "ongoing" | "completed";
+}
+
+export interface SchedulingResponse {
+  scheduled_matches: ScheduledMatch[];
+  total_schedule_time: number;
+  court_utilization: { [courtId: string]: number };
+  player_rest_violations: string[];
+  scheduling_conflicts: string[];
 }
 
 export const tournamentApi = {
@@ -49,7 +75,10 @@ export const tournamentApi = {
     apiRequest<Match[]>("/tournament/generate-fixtures", "POST", payload, true),
 
   generateSchedule: (payload: GenerateSchedulePayload) =>
-    apiRequest<Schedule>("/tournament/generate-schedule", "POST", payload, true),
+    apiRequest<SchedulingResponse>("/schedule/generate", "POST", payload, true),
+
+  saveSchedule: (schedule: SchedulingResponse) =>
+    apiRequest<{ success: boolean; message: string }>("/schedule/save", "POST", schedule, true),
 
   getMatches: () =>
     apiRequest<Match[]>("/tournament/matches", "GET"),
@@ -69,7 +98,4 @@ export const tournamentApi = {
       start_time: startTime,
       end_time: endTime,
     }, true),
-
-  getSchedule: () =>
-    apiRequest<Schedule>("/tournament/schedule", "GET"),
 };
