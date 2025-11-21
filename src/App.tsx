@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { TournamentProvider } from "./contexts/TournamentContext";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
@@ -18,6 +19,7 @@ import Community from "./pages/Community";
 import ClubView from "./pages/ClubView";
 import CourtBooking from "./pages/CourtBooking";
 import CreateClub from "./pages/CreateClub";
+import Committee from "./pages/Committee";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,12 +33,13 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Layout>
-            <Routes>
+      <TournamentProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Layout>
+              <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/admin-login" element={<AdminLogin />} />
@@ -57,11 +60,20 @@ const App = () => (
                   </AdminRoute>
                 }
               />
+              <Route
+                path="/committee"
+                element={
+                  <AdminRoute>
+                    <Committee />
+                  </AdminRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </BrowserRouter>
-      </TooltipProvider>
+              </Routes>
+            </Layout>
+          </BrowserRouter>
+        </TooltipProvider>
+      </TournamentProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

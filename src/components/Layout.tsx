@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, Calendar, Trophy, BarChart3, Building2 } from "lucide-react";
+import { Home, Users, Calendar, Trophy, BarChart3, Building2, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,14 @@ const navItems = [
   { path: "/leaderboard", icon: BarChart3, label: "Leaderboard" },
 ];
 
+const adminNavItems = [
+  { path: "/admin", icon: Shield, label: "Admin" },
+  { path: "/committee", icon: Users, label: "Committee" },
+];
+
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,6 +42,26 @@ export default function Layout({ children }: LayoutProps) {
 
             <div className="hidden md:flex items-center space-x-1">
               {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      "flex items-center space-x-2 px-4 py-2 rounded-lg smooth-transition",
+                      isActive
+                        ? "bg-primary/20 text-primary neon-border"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+
+              {isAdmin && adminNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
                 return (

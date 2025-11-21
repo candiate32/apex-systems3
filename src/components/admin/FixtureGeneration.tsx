@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTournament } from "@/contexts/TournamentContext";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -6,10 +7,12 @@ import { Loader2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 export default function FixtureGeneration() {
+  const { generateFixtures } = useTournament();
   const [format, setFormat] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showBracket, setShowBracket] = useState(false);
+  const [generatedMatches, setGeneratedMatches] = useState<any[]>([]);
 
   const handleGenerate = async () => {
     if (!format || !category) {
@@ -22,13 +25,16 @@ export default function FixtureGeneration() {
     setIsGenerating(true);
     
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    
+    const matches = generateFixtures(format, category);
+    setGeneratedMatches(matches);
     
     setIsGenerating(false);
     setShowBracket(true);
     
     toast.success("Fixtures Generated!", {
-      description: `${format} fixtures created for ${category}`,
+      description: `${matches.length} ${format} fixtures created for ${category}`,
     });
   };
 
