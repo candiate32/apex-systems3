@@ -1,0 +1,113 @@
+import { Player, Match, Court } from "./types";
+
+export const mockPlayers: Player[] = [
+  {
+    id: "1",
+    name: "Rahul Sharma",
+    age: 16,
+    phone: "9876543210",
+    club: "Delhi Sports Club",
+    gender: "male",
+    events: ["singles"],
+  },
+  {
+    id: "2",
+    name: "Priya Patel",
+    age: 15,
+    phone: "9876543211",
+    club: "Mumbai Racquet Club",
+    gender: "female",
+    events: ["singles", "doubles"],
+    partnerId: "4",
+    partnerName: "Ananya Singh",
+  },
+  {
+    id: "3",
+    name: "Arjun Kumar",
+    age: 17,
+    phone: "9876543212",
+    club: "Bangalore Sports Academy",
+    gender: "male",
+    events: ["singles"],
+  },
+  {
+    id: "4",
+    name: "Ananya Singh",
+    age: 15,
+    phone: "9876543213",
+    club: "Mumbai Racquet Club",
+    gender: "female",
+    events: ["doubles"],
+    partnerId: "2",
+    partnerName: "Priya Patel",
+  },
+];
+
+export const mockMatches: Match[] = [
+  {
+    id: "M001",
+    code: "SPT2024001",
+    player1: "Rahul Sharma",
+    player2: "Arjun Kumar",
+    eventType: "Men's Singles",
+    category: "U17",
+    court: 1,
+    startTime: "09:00",
+    endTime: "09:25",
+    round: "R1",
+    status: "ongoing",
+  },
+  {
+    id: "M002",
+    code: "SPT2024002",
+    player1: "Priya Patel",
+    player2: "Ananya Singh",
+    eventType: "Women's Doubles",
+    category: "U15",
+    court: 2,
+    startTime: "09:00",
+    endTime: "09:30",
+    round: "R1",
+    status: "ongoing",
+  },
+  {
+    id: "M003",
+    code: "SPT2024003",
+    player1: "Vikram Shah",
+    player2: "Rohan Gupta",
+    eventType: "Men's Singles",
+    category: "Open",
+    court: 3,
+    startTime: "09:10",
+    endTime: "09:35",
+    round: "QF",
+    status: "pending",
+  },
+];
+
+export const mockCourts: Court[] = [
+  {
+    id: 1,
+    currentMatch: mockMatches[0],
+    nextMatch: {
+      id: "M004",
+      code: "SPT2024004",
+      player1: "Player A",
+      player2: "Player B",
+      eventType: "Men's Singles",
+      category: "U15",
+      round: "R1",
+      status: "pending",
+    },
+  },
+  {
+    id: 2,
+    currentMatch: mockMatches[1],
+    nextMatch: undefined,
+  },
+  {
+    id: 3,
+    currentMatch: undefined,
+    nextMatch: mockMatches[2],
+  },
+];
