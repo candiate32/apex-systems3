@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { mockPlayers } from "@/lib/mockData";
+import { useTournament } from "@/contexts/TournamentContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,8 +7,8 @@ import { Search, Edit, Trash2, Filter } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PlayersList() {
+  const { players, deletePlayer } = useTournament();
   const [searchTerm, setSearchTerm] = useState("");
-  const [players] = useState(mockPlayers);
 
   const filteredPlayers = players.filter(
     (player) =>
@@ -17,6 +17,7 @@ export default function PlayersList() {
   );
 
   const handleDelete = (playerId: string, playerName: string) => {
+    deletePlayer(playerId);
     toast.success("Player Deleted", {
       description: `${playerName} has been removed from the tournament.`,
     });
