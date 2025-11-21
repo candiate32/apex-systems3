@@ -30,17 +30,22 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Bar */}
-      <nav className="glass-card border-b sticky top-0 z-50">
+      <nav className="glass-card border-b sticky top-0 z-50 backdrop-blur-xl">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-primary" />
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center group-hover:scale-110 smooth-transition">
+                <Trophy className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-xl font-bold glow-text">SportSync AI</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                SportSync AI
+              </span>
             </Link>
 
-            <div className="hidden md:flex items-center space-x-1">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-2">
+              {/* Main Nav Items */}
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
@@ -49,68 +54,67 @@ export default function Layout({ children }: LayoutProps) {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center space-x-2 px-4 py-2 rounded-lg smooth-transition",
+                      "flex items-center gap-2 px-3 py-2 rounded-lg smooth-transition text-sm font-medium",
                       isActive
-                        ? "bg-primary/20 text-primary neon-border"
+                        ? "bg-primary/20 text-primary shadow-lg shadow-primary/20"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                     )}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}
 
-              {isAdmin && adminNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={cn(
-                      "flex items-center space-x-2 px-4 py-2 rounded-lg smooth-transition",
-                      isActive
-                        ? "bg-primary/20 text-primary neon-border"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </Link>
-                );
-              })}
+              {/* Admin Nav Items - with separator */}
+              {isAdmin && (
+                <>
+                  <div className="h-8 w-px bg-border mx-2" />
+                  {adminNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-lg smooth-transition text-sm font-medium",
+                          isActive
+                            ? "bg-accent/20 text-accent shadow-lg shadow-accent/20"
+                            : "text-muted-foreground hover:text-accent hover:bg-accent/10"
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </>
+              )}
 
-              {isAuthenticated ? (
-                <Button
-                  onClick={logout}
-                  variant="outline"
-                  size="sm"
-                  className="ml-4 smooth-transition hover:scale-105"
-                >
-                  Logout
-                </Button>
-              ) : (
-                <Link to="/login">
+              {/* Auth Button */}
+              <div className="ml-2">
+                {isAuthenticated ? (
                   <Button
+                    onClick={logout}
                     variant="outline"
                     size="sm"
-                    className="ml-4 smooth-transition hover:scale-105"
+                    className="smooth-transition hover:scale-105 hover:shadow-lg"
                   >
-                    Login
+                    Logout
                   </Button>
-                </Link>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
-              <Link
-                to="/"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Home className="w-6 h-6" />
-              </Link>
+                ) : (
+                  <Link to="/login">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="smooth-transition hover:scale-105 hover:shadow-lg"
+                    >
+                      Login
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
