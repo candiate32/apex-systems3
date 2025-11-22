@@ -1,4 +1,4 @@
-import { SchedulingResponse } from "@/api/tournamentApi";
+import { SchedulingResponse } from "@/api/algorithmsApi";
 import { ScheduleMatchesTable } from "./ScheduleMatchesTable";
 import { CourtUtilizationPanel } from "./CourtUtilizationPanel";
 import { ConflictsPanel } from "./ConflictsPanel";

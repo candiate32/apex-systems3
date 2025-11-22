@@ -24,29 +24,29 @@ export interface Booking {
 
 export const bookingApi = {
   createBooking: (payload: CreateBookingPayload) =>
-    apiRequest<Booking>("/booking/create", "POST", payload, true),
+    apiRequest<Booking>("/api/bookings", "POST", payload, true),
 
   getBookings: () =>
-    apiRequest<Booking[]>("/booking", "GET", null, true),
+    apiRequest<Booking[]>("/api/bookings", "GET", null, true),
 
   getBookingById: (id: string) =>
-    apiRequest<Booking>(`/booking/${id}`, "GET", null, true),
+    apiRequest<Booking>(`/api/bookings/${id}`, "GET", null, true),
 
   getCourtBookings: (courtId: string, date: string) =>
     apiRequest<Booking[]>(
-      `/booking/court/${courtId}?date=${encodeURIComponent(date)}`,
+      `/api/bookings/court/${courtId}?date=${encodeURIComponent(date)}`,
       "GET"
     ),
 
   getUserBookings: () =>
-    apiRequest<Booking[]>("/booking/user", "GET", null, true),
+    apiRequest<Booking[]>("/api/bookings/user", "GET", null, true),
 
   cancelBooking: (id: string) =>
-    apiRequest<Booking>(`/booking/${id}/cancel`, "PUT", null, true),
+    apiRequest<Booking>(`/api/bookings/${id}/cancel`, "PUT", null, true),
 
   checkAvailability: (courtId: string, date: string, startTime: string, endTime: string) =>
     apiRequest<{ available: boolean }>(
-      `/booking/availability?court_id=${courtId}&date=${date}&start_time=${startTime}&end_time=${endTime}`,
+      `/api/bookings/availability?court_id=${courtId}&date=${date}&start_time=${startTime}&end_time=${endTime}`,
       "GET"
     ),
 };

@@ -14,7 +14,8 @@ export interface LoginUserPayload {
 }
 
 export interface AuthResponse {
-  token: string;
+  access_token: string;
+  token_type: string;
   user: {
     id: string;
     name: string;
@@ -27,10 +28,22 @@ export interface AuthResponse {
 
 export const authApi = {
   registerUser: (payload: RegisterUserPayload) =>
-    apiRequest<AuthResponse>("/auth/register", "POST", payload),
+    apiRequest<AuthResponse>("/api/auth/register", "POST", payload).then((res) => {
+      if (res.access_token) {
+        localStorage.setItem("token", res.access_token);
+        localStorage.setItem("user", JSON.stringify(res.user));
+      }
+      return res;
+    }),
 
   loginUser: (payload: LoginUserPayload) =>
-    apiRequest<AuthResponse>("/auth/login", "POST", payload),
+    apiRequest<AuthResponse>("/api/auth/login", "POST", payload).then((res) => {
+      if (res.access_token) {
+        localStorage.setItem("token", res.access_token);
+        localStorage.setItem("user", JSON.stringify(res.user));
+      }
+      return res;
+    }),
 
   logout: () => {
     localStorage.removeItem("token");
@@ -38,5 +51,5 @@ export const authApi = {
   },
 
   getCurrentUser: () =>
-    apiRequest<AuthResponse["user"]>("/auth/me", "GET", null, true),
+    apiRequest<AuthResponse["user"]>("/api/auth/me", "GET", null, true),
 };

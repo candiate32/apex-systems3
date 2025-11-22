@@ -42,20 +42,20 @@ export interface Club {
 
 export const clubApi = {
   createClub: (payload: CreateClubPayload) =>
-    apiRequest<Club>("/clubs/create", "POST", payload, true),
+    apiRequest<Club>("/api/clubs", "POST", payload, true),
 
   getClubs: () =>
-    apiRequest<Club[]>("/clubs", "GET"),
+    apiRequest<Club[]>("/api/clubs", "GET"),
 
   getClubById: (id: string) =>
-    apiRequest<Club>(`/clubs/${id}`, "GET"),
+    apiRequest<Club>(`/api/clubs/${id}`, "GET"),
 
   updateClub: (id: string, payload: Partial<CreateClubPayload>) =>
-    apiRequest<Club>(`/clubs/${id}`, "PUT", payload, true),
+    apiRequest<Club>(`/api/clubs/${id}`, "PUT", payload, true),
 
   deleteClub: (id: string) =>
-    apiRequest<void>(`/clubs/${id}`, "DELETE", null, true),
+    apiRequest<void>(`/api/clubs/${id}`, "DELETE", null, true),
 
   searchClubs: (query: string) =>
-    apiRequest<Club[]>(`/clubs/search?q=${encodeURIComponent(query)}`, "GET"),
+    apiRequest<Club[]>(`/api/clubs/search?q=${encodeURIComponent(query)}`, "GET"),
 };

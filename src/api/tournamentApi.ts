@@ -1,4 +1,5 @@
 import { apiRequest } from "./base";
+import type { SchedulingResponse } from "./algorithmsApi";
 
 export interface GenerateFixturesPayload {
   format: "knockout" | "round-robin";
@@ -62,38 +63,69 @@ export interface ScheduledMatch {
   status: "scheduled" | "pending" | "ongoing" | "completed";
 }
 
-export interface SchedulingResponse {
-  scheduled_matches: ScheduledMatch[];
-  total_schedule_time: number;
-  court_utilization: { [courtId: string]: number };
-  player_rest_violations: string[];
-  scheduling_conflicts: string[];
+export interface Tournament {
+  id: string;
+  name: string;
+  format: "knockout" | "round-robin" | "mixed";
+  category: string;
+  status: "upcoming" | "ongoing" | "completed";
+  start_date?: string;
+  end_date?: string;
+  max_participants?: number;
+  created_at: string;
+}
+
+export interface CreateTournamentPayload {
+  name: string;
+  format: "knockout" | "round-robin" | "mixed";
+  category: string;
+  start_date?: string;
+  end_date?: string;
+  max_participants?: number;
 }
 
 export const tournamentApi = {
+  getTournaments: () =>
+    apiRequest<Tournament[]>("/api/tournaments", "GET"),
+
+  getTournamentById: (id: string) =>
+    apiRequest<Tournament>(`/api/tournaments/${id}`, "GET"),
+
+  createTournament: (payload: CreateTournamentPayload) =>
+    apiRequest<Tournament>("/api/tournaments", "POST", payload, true),
+
+  updateTournament: (id: string, payload: Partial<CreateTournamentPayload>) =>
+    apiRequest<Tournament>(`/api/tournaments/${id}`, "PUT", payload, true),
+
+  deleteTournament: (id: string) =>
+    apiRequest<void>(`/api/tournaments/${id}`, "DELETE", null, true),
+
   generateFixtures: (payload: GenerateFixturesPayload) =>
-    apiRequest<Match[]>("/tournament/generate-fixtures", "POST", payload, true),
+    apiRequest<Match[]>("/api/tournaments/generate-fixtures", "POST", payload, true),
 
   generateSchedule: (payload: GenerateSchedulePayload) =>
-    apiRequest<SchedulingResponse>("/schedule/generate", "POST", payload, true),
+    apiRequest<SchedulingResponse>("/api/algorithms/scheduling", "POST", payload, true),
 
   saveSchedule: (schedule: SchedulingResponse) =>
-    apiRequest<{ success: boolean; message: string }>("/schedule/save", "POST", schedule, true),
+    apiRequest<{ success: boolean; message: string }>("/api/schedule/save", "POST", schedule, true),
 
   getMatches: () =>
-    apiRequest<Match[]>("/tournament/matches", "GET"),
+    apiRequest<Match[]>("/api/matches", "GET"),
 
   getMatchById: (id: string) =>
-    apiRequest<Match>(`/tournament/matches/${id}`, "GET"),
+    apiRequest<Match>(`/api/matches/${id}`, "GET"),
+
+  getMatchesByTournament: (tournamentId: string) =>
+    apiRequest<Match[]>(`/api/matches/tournament/${tournamentId}`, "GET"),
 
   updateMatchScore: (id: string, score1: number, score2: number) =>
-    apiRequest<Match>(`/tournament/matches/${id}/score`, "PUT", { score1, score2 }, true),
+    apiRequest<Match>(`/api/matches/${id}/score`, "PUT", { score1, score2 }, true),
 
   updateMatchStatus: (id: string, status: Match["status"]) =>
-    apiRequest<Match>(`/tournament/matches/${id}/status`, "PUT", { status }, true),
+    apiRequest<Match>(`/api/matches/${id}/status`, "PUT", { status }, true),
 
   assignCourt: (matchId: string, courtNumber: number, startTime: string, endTime: string) =>
-    apiRequest<Match>(`/tournament/matches/${matchId}/court`, "PUT", {
+    apiRequest<Match>(`/api/matches/${matchId}/court`, "PUT", {
       court: courtNumber,
       start_time: startTime,
       end_time: endTime,

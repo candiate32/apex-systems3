@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { tournamentApi } from "@/api";
-import { GenerateSchedulePayload, SchedulingResponse } from "@/api/tournamentApi";
+import { GenerateSchedulePayload } from "@/api/tournamentApi";
+import { SchedulingResponse } from "@/api/algorithmsApi";
 import { toast } from "sonner";
 
 export function useScheduleGenerator() {
