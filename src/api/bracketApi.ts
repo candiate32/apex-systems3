@@ -34,11 +34,11 @@ export interface TournamentBracket {
 
 export const bracketApi = {
   getBracket: (tournamentId: string) =>
-    apiRequest<TournamentBracket>(`/tournament/${tournamentId}/bracket`, "GET"),
+    apiRequest<TournamentBracket>(`/api/tournaments/${tournamentId}/bracket`, "GET"),
 
   updateMatchScore: (tournamentId: string, matchId: string, score1: number, score2: number) =>
     apiRequest<TournamentBracket>(
-      `/tournament/${tournamentId}/matches/${matchId}/score`,
+      `/api/tournaments/${tournamentId}/matches/${matchId}/score`,
       "PUT",
       { score1, score2 },
       true
@@ -46,7 +46,7 @@ export const bracketApi = {
 
   createBracket: (tournamentId: string, playerIds: string[]) =>
     apiRequest<TournamentBracket>(
-      `/tournament/${tournamentId}/bracket/create`,
+      `/api/tournaments/${tournamentId}/bracket/create`,
       "POST",
       { player_ids: playerIds },
       true

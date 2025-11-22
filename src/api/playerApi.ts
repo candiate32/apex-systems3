@@ -26,20 +26,20 @@ export interface Player {
 
 export const playerApi = {
   registerPlayer: (payload: RegisterPlayerPayload) =>
-    apiRequest<Player>("/players/register", "POST", payload, true),
+    apiRequest<Player>("/api/players", "POST", payload, true),
 
   getPlayers: () =>
-    apiRequest<Player[]>("/players", "GET"),
+    apiRequest<Player[]>("/api/players", "GET"),
 
   getPlayerById: (id: string) =>
-    apiRequest<Player>(`/players/${id}`, "GET"),
+    apiRequest<Player>(`/api/players/${id}`, "GET"),
 
   updatePlayer: (id: string, payload: Partial<RegisterPlayerPayload>) =>
-    apiRequest<Player>(`/players/${id}`, "PUT", payload, true),
+    apiRequest<Player>(`/api/players/${id}`, "PUT", payload, true),
 
   deletePlayer: (id: string) =>
-    apiRequest<void>(`/players/${id}`, "DELETE", null, true),
+    apiRequest<void>(`/api/players/${id}`, "DELETE", null, true),
 
   getPlayersByClub: (clubId: string) =>
-    apiRequest<Player[]>(`/players/club/${clubId}`, "GET"),
+    apiRequest<Player[]>(`/api/players/club/${clubId}`, "GET"),
 };

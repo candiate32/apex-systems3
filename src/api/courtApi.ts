@@ -16,20 +16,23 @@ export interface Court {
 
 export const courtApi = {
   createCourt: (payload: CreateCourtPayload) =>
-    apiRequest<Court>("/courts/create", "POST", payload, true),
+    apiRequest<Court>("/api/courts", "POST", payload, true),
 
   getCourts: () =>
-    apiRequest<Court[]>("/courts", "GET"),
+    apiRequest<Court[]>("/api/courts", "GET"),
+
+  getActiveCourts: () =>
+    apiRequest<Court[]>("/api/courts/active", "GET"),
 
   getCourtById: (id: string) =>
-    apiRequest<Court>(`/courts/${id}`, "GET"),
+    apiRequest<Court>(`/api/courts/${id}`, "GET"),
 
   getCourtsByClub: (clubId: string) =>
-    apiRequest<Court[]>(`/courts/club/${clubId}`, "GET"),
+    apiRequest<Court[]>(`/api/courts/club/${clubId}`, "GET"),
 
   updateCourt: (id: string, payload: Partial<CreateCourtPayload>) =>
-    apiRequest<Court>(`/courts/${id}`, "PUT", payload, true),
+    apiRequest<Court>(`/api/courts/${id}`, "PUT", payload, true),
 
   deleteCourt: (id: string) =>
-    apiRequest<void>(`/courts/${id}`, "DELETE", null, true),
+    apiRequest<void>(`/api/courts/${id}`, "DELETE", null, true),
 };

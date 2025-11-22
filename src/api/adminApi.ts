@@ -21,7 +21,13 @@ export interface AllocateCourtsPayload {
 
 export const adminApi = {
   login: (payload: AdminLoginPayload) =>
-    apiRequest<AdminAuthResponse>("/admin/login", "POST", payload),
+    apiRequest<AdminAuthResponse>("/api/admin/login", "POST", payload).then((res) => {
+      if (res.token) {
+        localStorage.setItem("admin_token", res.token);
+        localStorage.setItem("admin", JSON.stringify(res.admin));
+      }
+      return res;
+    }),
 
   logout: () => {
     localStorage.removeItem("admin_token");
@@ -29,10 +35,10 @@ export const adminApi = {
   },
 
   getCurrentAdmin: () =>
-    apiRequest<AdminAuthResponse["admin"]>("/admin/me", "GET", null, true),
+    apiRequest<AdminAuthResponse["admin"]>("/api/admin/me", "GET", null, true),
 
   generateFixtures: (payload: { format: string; category: string }) =>
-    apiRequest("/admin/generate-fixtures", "POST", payload, true),
+    apiRequest("/api/tournaments/generate-fixtures", "POST", payload, true),
 
   generateSchedule: (payload: {
     court_count: number;
@@ -40,10 +46,10 @@ export const adminApi = {
     rest_time: number;
     start_time: string;
   }) =>
-    apiRequest("/admin/generate-schedule", "POST", payload, true),
+    apiRequest("/api/algorithms/scheduling", "POST", payload, true),
 
   allocateCourts: (payload: AllocateCourtsPayload) =>
-    apiRequest("/admin/allocate-courts", "POST", payload, true),
+    apiRequest("/api/admin/allocate-courts", "POST", payload, true),
 
   getStats: () =>
     apiRequest<{
@@ -51,5 +57,5 @@ export const adminApi = {
       total_matches: number;
       total_clubs: number;
       total_bookings: number;
-    }>("/admin/stats", "GET", null, true),
+    }>("/api/statistics", "GET", null, true),
 };
