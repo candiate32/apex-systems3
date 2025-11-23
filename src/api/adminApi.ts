@@ -15,11 +15,6 @@ export interface AdminAuthResponse {
   };
 }
 
-export interface AllocateCourtsPayload {
-  session_id: string;
-  court_count: number;
-}
-
 export const adminApi = {
   login: async (payload: AdminLoginPayload) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -66,20 +61,6 @@ export const adminApi = {
       name: user.user_metadata.name || "Admin",
     };
   },
-
-  generateFixtures: (payload: { format: string; category: string }) =>
-    apiRequest("/api/tournaments/generate-fixtures", "POST", payload, true),
-
-  generateSchedule: (payload: {
-    court_count: number;
-    match_duration: number;
-    rest_time: number;
-    start_time: string;
-  }) =>
-    apiRequest("/api/algorithms/scheduling", "POST", payload, true),
-
-  allocateCourts: (payload: AllocateCourtsPayload) =>
-    apiRequest("/api/admin/allocate-courts", "POST", payload, true),
 
   getStats: async () => {
     const [players, matches, clubs, bookings] = await Promise.all([

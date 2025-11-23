@@ -5,7 +5,6 @@ export * from "./clubApi";
 export * from "./courtApi";
 export * from "./bookingApi";
 export * from "./tournamentApi";
-export * from "./bracketApi";
 export * from "./adminApi";
 export * from "./algorithmsApi";
 export * from "./csvApi";

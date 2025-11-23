@@ -139,11 +139,7 @@ export const tournamentApi = {
     if (error) throw error;
   },
 
-  generateFixtures: (payload: GenerateFixturesPayload) =>
-    apiRequest<Match[]>("/api/tournaments/generate-fixtures", "POST", payload, true),
 
-  generateSchedule: (payload: GenerateSchedulePayload) =>
-    apiRequest<SchedulingResponse>("/api/algorithms/scheduling", "POST", payload, true),
 
   saveSchedule: async (schedule: SchedulingResponse) => {
     // Assuming 'schedules' table exists and matches the structure
