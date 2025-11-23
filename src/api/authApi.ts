@@ -1,4 +1,4 @@
-import { apiRequest } from "./base";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface RegisterUserPayload {
   name: string;
@@ -14,8 +14,6 @@ export interface LoginUserPayload {
 }
 
 export interface AuthResponse {
-  access_token: string;
-  token_type: string;
   user: {
     id: string;
     name: string;
@@ -23,33 +21,76 @@ export interface AuthResponse {
     phone: string;
     club_id?: string;
     club_name?: string;
-  };
+  } | null;
+  session: any;
+  error?: any;
 }
 
 export const authApi = {
-  registerUser: (payload: RegisterUserPayload) =>
-    apiRequest<AuthResponse>("/api/auth/register", "POST", payload).then((res) => {
-      if (res.access_token) {
-        localStorage.setItem("token", res.access_token);
-        localStorage.setItem("user", JSON.stringify(res.user));
-      }
-      return res;
-    }),
+  registerUser: async (payload: RegisterUserPayload) => {
+    const { data, error } = await supabase.auth.signUp({
+      email: payload.email,
+      password: payload.password,
+      options: {
+        data: {
+          name: payload.name,
+          phone: payload.phone,
+          club_id: payload.club_id,
+        },
+      },
+    });
 
-  loginUser: (payload: LoginUserPayload) =>
-    apiRequest<AuthResponse>("/api/auth/login", "POST", payload).then((res) => {
-      if (res.access_token) {
-        localStorage.setItem("token", res.access_token);
-        localStorage.setItem("user", JSON.stringify(res.user));
-      }
-      return res;
-    }),
+    if (error) throw error;
 
-  logout: () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    return {
+      user: data.user ? {
+        id: data.user.id,
+        name: data.user.user_metadata.name,
+        email: data.user.email!,
+        phone: data.user.user_metadata.phone,
+        club_id: data.user.user_metadata.club_id,
+      } : null,
+      session: data.session,
+    };
   },
 
-  getCurrentUser: () =>
-    apiRequest<AuthResponse["user"]>("/api/auth/me", "GET", null, true),
+  loginUser: async (payload: LoginUserPayload) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: payload.email,
+      password: payload.password,
+    });
+
+    if (error) throw error;
+
+    return {
+      user: data.user ? {
+        id: data.user.id,
+        name: data.user.user_metadata.name,
+        email: data.user.email!,
+        phone: data.user.user_metadata.phone,
+        club_id: data.user.user_metadata.club_id,
+      } : null,
+      session: data.session,
+    };
+  },
+
+  logout: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  getCurrentUser: async () => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error) return null;
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      name: user.user_metadata.name,
+      email: user.email!,
+      phone: user.user_metadata.phone,
+      club_id: user.user_metadata.club_id,
+    };
+  },
 };

@@ -1,4 +1,4 @@
-import { apiRequest } from "./base";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Registration {
   id: string;
@@ -19,18 +19,56 @@ export interface CreateRegistrationPayload {
 }
 
 export const registrationsApi = {
-  getRegistrations: () =>
-    apiRequest<Registration[]>("/api/registrations", "GET", null, true),
+  getRegistrations: async () => {
+    const { data, error } = await supabase
+      .from("registrations")
+      .select("*");
 
-  getRegistrationsByEvent: (eventId: string) =>
-    apiRequest<Registration[]>(`/api/registrations/event/${eventId}`, "GET"),
+    if (error) throw error;
+    return data as Registration[];
+  },
 
-  createRegistration: (payload: CreateRegistrationPayload) =>
-    apiRequest<Registration>("/api/registrations", "POST", payload, true),
+  getRegistrationsByEvent: async (eventId: string) => {
+    const { data, error } = await supabase
+      .from("registrations")
+      .select("*")
+      .eq("event_id", eventId);
 
-  updateRegistrationStatus: (id: string, status: Registration["status"]) =>
-    apiRequest<Registration>(`/api/registrations/${id}`, "PUT", { status }, true),
+    if (error) throw error;
+    return data as Registration[];
+  },
 
-  deleteRegistration: (id: string) =>
-    apiRequest<void>(`/api/registrations/${id}`, "DELETE", null, true),
+  createRegistration: async (payload: CreateRegistrationPayload) => {
+    // We might need to fetch player and event names if they are required in the response but not in the payload
+    // For now, simple insert
+    const { data, error } = await supabase
+      .from("registrations")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Registration;
+  },
+
+  updateRegistrationStatus: async (id: string, status: Registration["status"]) => {
+    const { data, error } = await supabase
+      .from("registrations")
+      .update({ status })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Registration;
+  },
+
+  deleteRegistration: async (id: string) => {
+    const { error } = await supabase
+      .from("registrations")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  },
 };

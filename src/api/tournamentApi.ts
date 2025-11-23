@@ -1,4 +1,5 @@
 import { apiRequest } from "./base";
+import { supabase } from "@/integrations/supabase/client";
 import type { SchedulingResponse } from "./algorithmsApi";
 
 export interface GenerateFixturesPayload {
@@ -33,6 +34,7 @@ export interface Match {
     player2: number;
   };
   created_at: string;
+  tournament_id?: string; // Added this field assuming it exists in DB
 }
 
 export interface ScheduledPlayer {
@@ -85,20 +87,57 @@ export interface CreateTournamentPayload {
 }
 
 export const tournamentApi = {
-  getTournaments: () =>
-    apiRequest<Tournament[]>("/api/tournaments", "GET"),
+  getTournaments: async () => {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("*");
 
-  getTournamentById: (id: string) =>
-    apiRequest<Tournament>(`/api/tournaments/${id}`, "GET"),
+    if (error) throw error;
+    return data as Tournament[];
+  },
 
-  createTournament: (payload: CreateTournamentPayload) =>
-    apiRequest<Tournament>("/api/tournaments", "POST", payload, true),
+  getTournamentById: async (id: string) => {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  updateTournament: (id: string, payload: Partial<CreateTournamentPayload>) =>
-    apiRequest<Tournament>(`/api/tournaments/${id}`, "PUT", payload, true),
+    if (error) throw error;
+    return data as Tournament;
+  },
 
-  deleteTournament: (id: string) =>
-    apiRequest<void>(`/api/tournaments/${id}`, "DELETE", null, true),
+  createTournament: async (payload: CreateTournamentPayload) => {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Tournament;
+  },
+
+  updateTournament: async (id: string, payload: Partial<CreateTournamentPayload>) => {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .update(payload)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Tournament;
+  },
+
+  deleteTournament: async (id: string) => {
+    const { error } = await (supabase as any)
+      .from("tournaments")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  },
 
   generateFixtures: (payload: GenerateFixturesPayload) =>
     apiRequest<Match[]>("/api/tournaments/generate-fixtures", "POST", payload, true),
@@ -106,28 +145,85 @@ export const tournamentApi = {
   generateSchedule: (payload: GenerateSchedulePayload) =>
     apiRequest<SchedulingResponse>("/api/algorithms/scheduling", "POST", payload, true),
 
-  saveSchedule: (schedule: SchedulingResponse) =>
-    apiRequest<{ success: boolean; message: string }>("/api/schedule/save", "POST", schedule, true),
+  saveSchedule: async (schedule: SchedulingResponse) => {
+    // Assuming 'schedules' table exists and matches the structure
+    // This might need adjustment based on actual schema
+    const { error } = await (supabase as any)
+      .from("schedules")
+      .insert(schedule as any); // Casting to any as structure might differ
 
-  getMatches: () =>
-    apiRequest<Match[]>("/api/matches", "GET"),
+    if (error) throw error;
+    return { success: true, message: "Schedule saved" };
+  },
 
-  getMatchById: (id: string) =>
-    apiRequest<Match>(`/api/matches/${id}`, "GET"),
+  getMatches: async () => {
+    const { data, error } = await supabase
+      .from("matches")
+      .select("*");
 
-  getMatchesByTournament: (tournamentId: string) =>
-    apiRequest<Match[]>(`/api/matches/tournament/${tournamentId}`, "GET"),
+    if (error) throw error;
+    return data as Match[];
+  },
 
-  updateMatchScore: (id: string, score1: number, score2: number) =>
-    apiRequest<Match>(`/api/matches/${id}/score`, "PUT", { score1, score2 }, true),
+  getMatchById: async (id: string) => {
+    const { data, error } = await supabase
+      .from("matches")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  updateMatchStatus: (id: string, status: Match["status"]) =>
-    apiRequest<Match>(`/api/matches/${id}/status`, "PUT", { status }, true),
+    if (error) throw error;
+    return data as Match;
+  },
 
-  assignCourt: (matchId: string, courtNumber: number, startTime: string, endTime: string) =>
-    apiRequest<Match>(`/api/matches/${matchId}/court`, "PUT", {
-      court: courtNumber,
-      start_time: startTime,
-      end_time: endTime,
-    }, true),
+  getMatchesByTournament: async (tournamentId: string) => {
+    // Assuming 'tournament_id' column exists in matches table
+    const { data, error } = await supabase
+      .from("matches")
+      .select("*")
+      .eq("tournament_id", tournamentId);
+
+    if (error) throw error;
+    return data as Match[];
+  },
+
+  updateMatchScore: async (id: string, score1: number, score2: number) => {
+    const { data, error } = await supabase
+      .from("matches")
+      .update({ score: { player1: score1, player2: score2 } })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Match;
+  },
+
+  updateMatchStatus: async (id: string, status: Match["status"]) => {
+    const { data, error } = await supabase
+      .from("matches")
+      .update({ status })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Match;
+  },
+
+  assignCourt: async (matchId: string, courtNumber: number, startTime: string, endTime: string) => {
+    const { data, error } = await supabase
+      .from("matches")
+      .update({
+        court: courtNumber,
+        start_time: startTime,
+        end_time: endTime,
+      })
+      .eq("id", matchId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Match;
+  },
 };

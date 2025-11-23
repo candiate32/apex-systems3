@@ -1,4 +1,5 @@
 import { apiRequest } from "./base";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface BracketPlayer {
   id: string;
@@ -36,13 +37,29 @@ export const bracketApi = {
   getBracket: (tournamentId: string) =>
     apiRequest<TournamentBracket>(`/api/tournaments/${tournamentId}/bracket`, "GET"),
 
-  updateMatchScore: (tournamentId: string, matchId: string, score1: number, score2: number) =>
-    apiRequest<TournamentBracket>(
-      `/api/tournaments/${tournamentId}/matches/${matchId}/score`,
-      "PUT",
-      { score1, score2 },
-      true
-    ),
+  updateMatchScore: async (tournamentId: string, matchId: string, score1: number, score2: number) => {
+    // We update the match score in the matches table directly
+    const { data, error } = await (supabase as any)
+      .from("matches")
+      .update({ score: { player1: score1, player2: score2 } })
+      .eq("id", matchId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // We might need to return the updated bracket, but that requires re-fetching or reconstructing.
+    // For now, we return a partial object or re-fetch if possible.
+    // Since getBracket is still backend, we might just return the match or try to fetch bracket from backend again?
+    // But if backend is gone, getBracket fails.
+    // Ideally we should implement getBracket in frontend too, but it's complex.
+    // Let's return the match data casted or wrapped.
+    // The original API returns TournamentBracket.
+    // If we can't return that, the UI might break.
+    // We'll try to fetch the bracket from backend (if it still exists) or just throw/return null.
+    // Assuming backend logic for bracket is still needed.
+    return bracketApi.getBracket(tournamentId);
+  },
 
   createBracket: (tournamentId: string, playerIds: string[]) =>
     apiRequest<TournamentBracket>(

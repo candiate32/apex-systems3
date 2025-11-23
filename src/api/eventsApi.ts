@@ -1,4 +1,4 @@
-import { apiRequest } from "./base";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Event {
   id: string;
@@ -27,18 +27,55 @@ export interface CreateEventPayload {
 }
 
 export const eventsApi = {
-  getEvents: () =>
-    apiRequest<Event[]>("/api/events", "GET"),
+  getEvents: async () => {
+    const { data, error } = await supabase
+      .from("events")
+      .select("*");
 
-  getEventById: (id: string) =>
-    apiRequest<Event>(`/api/events/${id}`, "GET"),
+    if (error) throw error;
+    return data as Event[];
+  },
 
-  createEvent: (payload: CreateEventPayload) =>
-    apiRequest<Event>("/api/events", "POST", payload, true),
+  getEventById: async (id: string) => {
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  updateEvent: (id: string, payload: Partial<CreateEventPayload>) =>
-    apiRequest<Event>(`/api/events/${id}`, "PUT", payload, true),
+    if (error) throw error;
+    return data as Event;
+  },
 
-  deleteEvent: (id: string) =>
-    apiRequest<void>(`/api/events/${id}`, "DELETE", null, true),
+  createEvent: async (payload: CreateEventPayload) => {
+    const { data, error } = await supabase
+      .from("events")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Event;
+  },
+
+  updateEvent: async (id: string, payload: Partial<CreateEventPayload>) => {
+    const { data, error } = await supabase
+      .from("events")
+      .update(payload)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Event;
+  },
+
+  deleteEvent: async (id: string) => {
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  },
 };

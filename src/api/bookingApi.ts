@@ -1,4 +1,4 @@
-import { apiRequest } from "./base";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CreateBookingPayload {
   court_id: string;
@@ -23,30 +23,102 @@ export interface Booking {
 }
 
 export const bookingApi = {
-  createBooking: (payload: CreateBookingPayload) =>
-    apiRequest<Booking>("/api/bookings", "POST", payload, true),
+  createBooking: async (payload: CreateBookingPayload) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
 
-  getBookings: () =>
-    apiRequest<Booking[]>("/api/bookings", "GET", null, true),
+    const { data, error } = await supabase
+      .from("court_bookings")
+      .insert({
+        court_id: payload.court_id,
+        date: payload.date,
+        start_time: payload.start_time,
+        end_time: payload.end_time,
+        user_id: user.id,
+        status: "confirmed", // Default status
+      })
+      .select()
+      .single();
 
-  getBookingById: (id: string) =>
-    apiRequest<Booking>(`/api/bookings/${id}`, "GET", null, true),
+    if (error) throw error;
+    return data as unknown as Booking;
+  },
 
-  getCourtBookings: (courtId: string, date: string) =>
-    apiRequest<Booking[]>(
-      `/api/bookings/court/${courtId}?date=${encodeURIComponent(date)}`,
-      "GET"
-    ),
+  getBookings: async () => {
+    const { data, error } = await supabase
+      .from("court_bookings")
+      .select("*");
 
-  getUserBookings: () =>
-    apiRequest<Booking[]>("/api/bookings/user", "GET", null, true),
+    if (error) throw error;
+    return data as unknown as Booking[];
+  },
 
-  cancelBooking: (id: string) =>
-    apiRequest<Booking>(`/api/bookings/${id}/cancel`, "PUT", null, true),
+  getBookingById: async (id: string) => {
+    const { data, error } = await supabase
+      .from("court_bookings")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  checkAvailability: (courtId: string, date: string, startTime: string, endTime: string) =>
-    apiRequest<{ available: boolean }>(
-      `/api/bookings/availability?court_id=${courtId}&date=${date}&start_time=${startTime}&end_time=${endTime}`,
-      "GET"
-    ),
+    if (error) throw error;
+    return data as unknown as Booking;
+  },
+
+  getCourtBookings: async (courtId: string, date: string) => {
+    const { data, error } = await supabase
+      .from("court_bookings")
+      .select("*")
+      .eq("court_id", courtId)
+      .eq("date", date);
+
+    if (error) throw error;
+    return data as unknown as Booking[];
+  },
+
+  getUserBookings: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { data, error } = await supabase
+      .from("court_bookings")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (error) throw error;
+    return data as unknown as Booking[];
+  },
+
+  cancelBooking: async (id: string) => {
+    const { data, error } = await supabase
+      .from("court_bookings")
+      .update({ status: "cancelled" })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as unknown as Booking;
+  },
+
+  checkAvailability: async (courtId: string, date: string, startTime: string, endTime: string) => {
+    const { data, error } = await supabase
+      .from("court_bookings")
+      .select("*")
+      .eq("court_id", courtId)
+      .eq("date", date)
+      .neq("status", "cancelled");
+
+    if (error) throw error;
+
+    const isAvailable = !data.some((booking) => {
+      // Simple overlap check
+      return (
+        (startTime >= booking.start_time && startTime < booking.end_time) ||
+        (endTime > booking.start_time && endTime <= booking.end_time) ||
+        (startTime <= booking.start_time && endTime >= booking.end_time)
+      );
+    });
+
+    return { available: isAvailable };
+  },
 };

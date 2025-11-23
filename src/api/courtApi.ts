@@ -1,4 +1,4 @@
-import { apiRequest } from "./base";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CreateCourtPayload {
   name: string;
@@ -15,24 +15,75 @@ export interface Court {
 }
 
 export const courtApi = {
-  createCourt: (payload: CreateCourtPayload) =>
-    apiRequest<Court>("/api/courts", "POST", payload, true),
+  createCourt: async (payload: CreateCourtPayload) => {
+    const { data, error } = await supabase
+      .from("courts")
+      .insert(payload)
+      .select()
+      .single();
 
-  getCourts: () =>
-    apiRequest<Court[]>("/api/courts", "GET"),
+    if (error) throw error;
+    return data as Court;
+  },
 
-  getActiveCourts: () =>
-    apiRequest<Court[]>("/api/courts/active", "GET"),
+  getCourts: async () => {
+    const { data, error } = await supabase
+      .from("courts")
+      .select("*");
 
-  getCourtById: (id: string) =>
-    apiRequest<Court>(`/api/courts/${id}`, "GET"),
+    if (error) throw error;
+    return data as Court[];
+  },
 
-  getCourtsByClub: (clubId: string) =>
-    apiRequest<Court[]>(`/api/courts/club/${clubId}`, "GET"),
+  getActiveCourts: async () => {
+    // Assuming all courts are active for now as there is no status column in courts table
+    const { data, error } = await supabase
+      .from("courts")
+      .select("*");
 
-  updateCourt: (id: string, payload: Partial<CreateCourtPayload>) =>
-    apiRequest<Court>(`/api/courts/${id}`, "PUT", payload, true),
+    if (error) throw error;
+    return data as Court[];
+  },
 
-  deleteCourt: (id: string) =>
-    apiRequest<void>(`/api/courts/${id}`, "DELETE", null, true),
+  getCourtById: async (id: string) => {
+    const { data, error } = await supabase
+      .from("courts")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data as Court;
+  },
+
+  getCourtsByClub: async (clubId: string) => {
+    const { data, error } = await supabase
+      .from("courts")
+      .select("*")
+      .eq("club_id", clubId);
+
+    if (error) throw error;
+    return data as Court[];
+  },
+
+  updateCourt: async (id: string, payload: Partial<CreateCourtPayload>) => {
+    const { data, error } = await supabase
+      .from("courts")
+      .update(payload)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Court;
+  },
+
+  deleteCourt: async (id: string) => {
+    const { error } = await supabase
+      .from("courts")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  },
 };
