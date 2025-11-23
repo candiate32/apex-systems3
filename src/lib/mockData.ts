@@ -135,7 +135,7 @@ export const mockClubs: Club[] = [
   },
   {
     id: "club2",
-    name: "Mumbai Racquet Club",
+    name: "Mumbai Rack Club",
     logo: "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=200",
     location: "Mumbai, India",
     about: "Elite club focusing on competitive tournaments and player development.",

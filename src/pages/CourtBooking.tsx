@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { mockClubs, mockBookings } from "@/lib/mockData";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle2 } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle2, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,9 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { clubApi, Club } from "@/api/clubApi";
+import { bookingApi, Booking } from "@/api/bookingApi";
 
 export default function CourtBooking() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [selectedClub, setSelectedClub] = useState(searchParams.get("clubId") || "");
   const [selectedCourt, setSelectedCourt] = useState(searchParams.get("courtId") || "");
@@ -27,6 +29,42 @@ export default function CourtBooking() {
   const [endTime, setEndTime] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
+
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loadingClubs, setLoadingClubs] = useState(true);
+
+  // Fetch clubs on mount
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        const data = await clubApi.getClubs();
+        setClubs(data);
+      } catch (error) {
+        console.error("Error fetching clubs:", error);
+        toast.error("Failed to load clubs");
+      } finally {
+        setLoadingClubs(false);
+      }
+    };
+    fetchClubs();
+  }, []);
+
+  // Fetch bookings when court and date change
+  useEffect(() => {
+    const fetchBookings = async () => {
+      if (!selectedCourt || !selectedDate) return;
+
+      const dateStr = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+      try {
+        const data = await bookingApi.getCourtBookings(selectedCourt, dateStr);
+        setBookings(data);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+    fetchBookings();
+  }, [selectedCourt, selectedDate]);
 
   if (!isAuthenticated) {
     return (
@@ -39,7 +77,7 @@ export default function CourtBooking() {
     );
   }
 
-  const selectedClubData = mockClubs.find((c) => c.id === selectedClub);
+  const selectedClubData = clubs.find((c) => c.id === selectedClub);
   const availableCourts = selectedClubData?.courts || [];
   const selectedCourtData = availableCourts.find((c) => c.id === selectedCourt);
 
@@ -52,15 +90,14 @@ export default function CourtBooking() {
   const checkAvailability = () => {
     if (!selectedDate || !startTime || !endTime) return true;
 
-    const dateStr = selectedDate.toISOString().split("T")[0];
-    const overlapping = mockBookings.some(
+    // Simple client-side check against fetched bookings
+    // Ideally, we should also check server-side before confirming
+    const overlapping = bookings.some(
       (booking) =>
-        booking.courtId === selectedCourt &&
-        booking.date === dateStr &&
         booking.status === "confirmed" &&
-        ((startTime >= booking.startTime && startTime < booking.endTime) ||
-          (endTime > booking.startTime && endTime <= booking.endTime) ||
-          (startTime <= booking.startTime && endTime >= booking.endTime))
+        ((startTime >= booking.start_time && startTime < booking.end_time) ||
+          (endTime > booking.start_time && endTime <= booking.end_time) ||
+          (startTime <= booking.start_time && endTime >= booking.end_time))
     );
 
     return !overlapping;
@@ -93,21 +130,50 @@ export default function CourtBooking() {
 
   const confirmBooking = async () => {
     setIsBooking(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      if (!selectedDate) return;
+      const dateStr = selectedDate.toLocaleDateString('en-CA');
 
-    toast.success("Court Booked Successfully!", {
-      description: `Your booking is confirmed for ${selectedDate?.toLocaleDateString()}.`,
-      icon: <CheckCircle2 className="text-accent" />,
-    });
+      await bookingApi.createBooking({
+        court_id: selectedCourt,
+        date: dateStr,
+        start_time: startTime,
+        end_time: endTime,
+      });
 
-    setShowConfirmDialog(false);
-    setIsBooking(false);
+      toast.success("Court Booked Successfully!", {
+        description: `Your booking is confirmed for ${selectedDate?.toLocaleDateString()}.`,
+        icon: <CheckCircle2 className="text-accent" />,
+      });
 
-    // Reset form
-    setSelectedCourt("");
-    setStartTime("");
-    setEndTime("");
+      setShowConfirmDialog(false);
+
+      // Reset form
+      setSelectedCourt("");
+      setStartTime("");
+      setEndTime("");
+
+      // Refresh bookings
+      const data = await bookingApi.getCourtBookings(selectedCourt, dateStr);
+      setBookings(data);
+
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error("Booking Failed", {
+        description: "There was an error processing your booking. Please try again.",
+      });
+    } finally {
+      setIsBooking(false);
+    }
   };
+
+  if (loadingClubs) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -127,12 +193,15 @@ export default function CourtBooking() {
             {/* Select Club */}
             <div className="space-y-2">
               <Label>Select Club</Label>
-              <Select value={selectedClub} onValueChange={setSelectedClub}>
+              <Select value={selectedClub} onValueChange={(val) => {
+                setSelectedClub(val);
+                setSelectedCourt(""); // Reset court when club changes
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a club" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockClubs.map((club) => (
+                  {clubs.map((club) => (
                     <SelectItem key={club.id} value={club.id}>
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />

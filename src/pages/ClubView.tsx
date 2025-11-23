@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockClubs, mockPlayers } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,13 +12,42 @@ import {
   Instagram,
   ArrowLeft,
   Calendar,
+  Loader2,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { clubApi, Club } from "@/api/clubApi";
+import { toast } from "sonner";
 
 export default function ClubView() {
   const { clubId } = useParams();
   const navigate = useNavigate();
+  const [club, setClub] = useState<Club | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const club = mockClubs.find((c) => c.id === clubId);
+  useEffect(() => {
+    const fetchClub = async () => {
+      if (!clubId) return;
+      try {
+        const data = await clubApi.getClubById(clubId);
+        setClub(data);
+      } catch (error) {
+        console.error("Error fetching club:", error);
+        toast.error("Failed to load club details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClub();
+  }, [clubId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!club) {
     return (
@@ -35,7 +63,8 @@ export default function ClubView() {
     );
   }
 
-  const clubMembers = mockPlayers.filter((p) => club.members.includes(p.id));
+  // Mock members for now as the API doesn't return member details yet
+  const clubMembers: any[] = [];
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -52,9 +81,9 @@ export default function ClubView() {
       {/* Club Header */}
       <div className="glass-card p-8 rounded-xl mb-8 animate-slide-up">
         <div className="flex flex-col md:flex-row gap-6 items-start">
-          {club.logo ? (
+          {club.logo_url ? (
             <img
-              src={club.logo}
+              src={club.logo_url}
               alt={club.name}
               className="w-32 h-32 rounded-xl object-cover border-2 border-primary/50"
             />
@@ -78,20 +107,20 @@ export default function ClubView() {
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="w-4 h-4 text-primary" />
-                <span>{club.contactInfo}</span>
+                <span>{club.contact_info}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Users className="w-4 h-4 text-primary" />
-                <span>{club.playerCount} Members</span>
+                <span>{club.player_count || 0} Members</span>
               </div>
             </div>
 
             {/* Social Links */}
-            {club.socialLinks && (
+            {club.social_links && (
               <div className="flex gap-3">
-                {club.socialLinks.website && (
+                {club.social_links.website && (
                   <a
-                    href={club.socialLinks.website}
+                    href={club.social_links.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:text-primary/80 smooth-transition"
@@ -99,9 +128,9 @@ export default function ClubView() {
                     <Globe className="w-5 h-5" />
                   </a>
                 )}
-                {club.socialLinks.facebook && (
+                {club.social_links.facebook && (
                   <a
-                    href={`https://facebook.com/${club.socialLinks.facebook}`}
+                    href={`https://facebook.com/${club.social_links.facebook}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:text-primary/80 smooth-transition"
@@ -109,9 +138,9 @@ export default function ClubView() {
                     <Facebook className="w-5 h-5" />
                   </a>
                 )}
-                {club.socialLinks.instagram && (
+                {club.social_links.instagram && (
                   <a
-                    href={`https://instagram.com/${club.socialLinks.instagram}`}
+                    href={`https://instagram.com/${club.social_links.instagram}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:text-primary/80 smooth-transition"
@@ -136,26 +165,30 @@ export default function ClubView() {
             <CardDescription>Book a court for your next match</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {club.courts.map((court) => (
-              <div
-                key={court.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary smooth-transition"
-              >
-                <div>
-                  <p className="font-medium">{court.name}</p>
-                  <Badge variant="outline" className="mt-1">
-                    {court.type}
-                  </Badge>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => navigate(`/court-booking?courtId=${court.id}`)}
-                  className="neon-border smooth-transition hover:scale-105"
+            {club.courts && club.courts.length > 0 ? (
+              club.courts.map((court) => (
+                <div
+                  key={court.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary smooth-transition"
                 >
-                  Book
-                </Button>
-              </div>
-            ))}
+                  <div>
+                    <p className="font-medium">{court.name}</p>
+                    <Badge variant="outline" className="mt-1">
+                      {court.type}
+                    </Badge>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(`/court-booking?clubId=${club.id}&courtId=${court.id}`)}
+                    className="neon-border smooth-transition hover:scale-105"
+                  >
+                    Book
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-4">No courts available</p>
+            )}
           </CardContent>
         </Card>
 
@@ -166,7 +199,7 @@ export default function ClubView() {
               <Users className="w-5 h-5 text-primary" />
               Club Members
             </CardTitle>
-            <CardDescription>{clubMembers.length} active members</CardDescription>
+            <CardDescription>{club.player_count || 0} active members</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {clubMembers.map((member) => (
@@ -182,7 +215,7 @@ export default function ClubView() {
               </div>
             ))}
             {clubMembers.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">No members yet</p>
+              <p className="text-center text-muted-foreground py-4">Member list not available</p>
             )}
           </CardContent>
         </Card>

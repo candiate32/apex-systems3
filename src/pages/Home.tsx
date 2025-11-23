@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import { Users, Building2, Calendar, Trophy, BarChart3, Zap } from "lucide-react";
+import { Users, Building2, Calendar, Trophy, BarChart3, Zap, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { statisticsApi, Statistics } from "@/api/statisticsApi";
 
 const features = [
   {
@@ -41,6 +43,24 @@ const features = [
 ];
 
 export default function Home() {
+  const [stats, setStats] = useState<Statistics | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await statisticsApi.getStatistics();
+        setStats(data);
+      } catch (error) {
+        console.error("Error fetching statistics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -51,13 +71,13 @@ export default function Home() {
             AI-Powered Tournament Management
           </span>
         </div>
-        
+
         <h1 className="text-5xl md:text-7xl font-bold">
           <span className="glow-text">SportSync</span>
           <br />
           <span className="text-foreground">Next-Gen Scheduling</span>
         </h1>
-        
+
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Ultra-modern tournament control system with real-time updates,
           intelligent scheduling, and seamless match management
@@ -115,25 +135,25 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="text-center">
             <div className="text-3xl md:text-4xl font-bold glow-text mb-2">
-              500+
+              {loading ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : stats?.total_players || 0}
             </div>
             <div className="text-sm text-muted-foreground">Players Registered</div>
           </div>
           <div className="text-center">
             <div className="text-3xl md:text-4xl font-bold text-accent mb-2">
-              150+
+              {loading ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : stats?.total_matches || 0}
             </div>
             <div className="text-sm text-muted-foreground">Matches Completed</div>
           </div>
           <div className="text-center">
             <div className="text-3xl md:text-4xl font-bold text-neon-purple mb-2">
-              12
+              {loading ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : stats?.active_courts || 0}
             </div>
             <div className="text-sm text-muted-foreground">Active Courts</div>
           </div>
           <div className="text-center">
             <div className="text-3xl md:text-4xl font-bold text-neon-green mb-2">
-              98%
+              {loading ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : "98%"}
             </div>
             <div className="text-sm text-muted-foreground">Success Rate</div>
           </div>
