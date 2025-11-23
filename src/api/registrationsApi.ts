@@ -14,8 +14,11 @@ export interface Registration {
 
 export interface CreateRegistrationPayload {
   player_id: string;
+  player_name: string;
   event_id: string;
+  event_name: string;
   partner_id?: string;
+  partner_name?: string;
 }
 
 export const registrationsApi = {
